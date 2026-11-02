@@ -235,6 +235,27 @@ svg text{font-family:var(--f-px)}
 .tn small{font:10px var(--f-px);color:var(--mute)}
 footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--line);font-size:13px;color:var(--mute)}
 footer a{color:var(--blue)}
+/* Evolved forms */
+.evbox{margin:14px 0 4px;border:1.5px solid color-mix(in srgb,var(--rc) 45%,#fff);border-radius:10px;overflow:hidden}
+.evbox .eh{display:flex;align-items:center;gap:8px;padding:10px 12px;background:color-mix(in srgb,var(--rc) 10%,#fff);border-bottom:1px solid color-mix(in srgb,var(--rc) 25%,#fff)}
+.evbox .eh b{font:400 18px/1.2 var(--f-px);color:var(--ink)}
+.evbox .eh span{margin-left:auto;font:800 9px var(--f-txt);letter-spacing:.14em;text-transform:uppercase;color:var(--rc)}
+.evbox .eb{padding:10px 12px 12px}
+.evbox .eb p{margin:0 0 10px;font-size:14px}
+.evbox table td:nth-child(3){color:var(--rc);font-weight:700}
+.star{color:var(--rc);margin-right:2px}
+.egrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
+.ecard{display:grid;gap:8px;text-align:left;background:var(--paper);border:1.5px solid var(--line);border-top:3px solid var(--rc);border-radius:10px;padding:12px 14px;min-width:0}
+.ecard:hover{border-color:var(--line2);border-top-color:var(--rc);box-shadow:0 2px 0 var(--line)}
+.ecard .top{display:grid;grid-template-columns:42px minmax(0,1fr);gap:11px;align-items:center}
+.ecard .top b{display:block;font:400 18px/1.2 var(--f-px);color:var(--ink)}
+.ecard .top small{display:block;font:12px var(--f-txt);color:var(--mute)}
+.ecard .top small i{font-style:normal;color:var(--ink2);font-weight:700}
+.ecard p{margin:0;font-size:13.5px;color:var(--ink2)}
+.ecard.secret .top b,.ecard.secret p,.ecard.secret .top small i{filter:blur(4px)}
+.deltas{display:flex;flex-wrap:wrap;gap:5px}
+.delta{font:12px var(--f-px);padding:3px 8px;border-radius:999px;background:var(--wash);border:1px solid var(--line);color:var(--ink2);white-space:nowrap}
+.delta em{font-style:normal;color:var(--rc)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -268,6 +289,19 @@ footer a{color:var(--blue)}
     <div class="trow"><span class="lbl">Type</span><div class="chips" id="ptype"></div></div>
   </div>
   <div class="md"><div class="list" id="plist"></div><aside class="detail" id="pdet" aria-live="polite"></aside></div>
+</section>
+
+<section id="v-evolved" hidden>
+  <div class="intro"><div><h2>Evolved Forms</h2><p>What every power becomes at level 5. Evolving keeps the same ability and makes it stronger: the new name comes with bigger numbers, a shorter cooldown and, for summons, allies that stay longer.</p></div></div>
+  <div class="tools">
+    <div class="trow">
+      <label class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="eq" type="search" placeholder="Search an evolved form, e.g. Administrator" aria-label="Search evolved forms"></label>
+      <span class="count" id="ecount"></span>
+    </div>
+    <div class="trow"><span class="lbl">Category</span><div class="chips" id="ecat"></div></div>
+    <div class="trow"><span class="lbl">Rarity</span><div class="chips" id="erar"></div></div>
+  </div>
+  <div id="elist"></div>
 </section>
 
 <section id="v-skills" hidden>
@@ -386,14 +420,14 @@ function sGlyph(s,secret){return `<span class="glyph pass" style="--gc:${HCOL[s.
 const pips=(n,on,c)=>`<span class="pips" style="--cc:${c}">${Array.from({length:n},(_,i)=>`<i class="${i<on?'on':''}"></i>`).join('')}</span>`;
 
 /* state */
-let S={pq:'',pcat:null,prar:null,ptype:null,psort:'rar',psel:'fire',sq:'',scat:null,ssel:HS[0].id,reveal:false,plan:[]};
+let S={eq:'',ecat:null,erar:null,pq:'',pcat:null,prar:null,ptype:null,psort:'rar',psel:'fire',sq:'',scat:null,ssel:HS[0].id,reveal:false,plan:[]};
 try{const s=JSON.parse(localStorage.getItem('eclipse-wiki-v2')||'{}');if(Array.isArray(s.plan))S.plan=s.plan.filter(id=>PWI[id]&&!PWI[id].hidden).slice(0,3);S.reveal=!!s.reveal}catch(e){}
 const save=()=>{try{localStorage.setItem('eclipse-wiki-v2',JSON.stringify({plan:S.plan,reveal:S.reveal}))}catch(e){}};
 const mobile=()=>matchMedia('(max-width:900px)').matches;
 
 /* header */
 $('#stats').innerHTML=[[PW.length,'Powers'],[HS.length,'Hidden skills'],[5,'Levels each'],[180,'Points to evolve']].map(([n,l])=>`<div><b>${n}</b><span>${l}</span></div>`).join('');
-const VIEWS=[['powers','Divine Powers',PW.length],['skills','Hidden Skills',HS.length],['growth','How Growth Works'],['planner','Soul Planner'],['classes','Class Skills']];
+const VIEWS=[['powers','Divine Powers',PW.length],['evolved','Evolved Forms',PW.length],['skills','Hidden Skills',HS.length],['growth','How Growth Works'],['planner','Soul Planner'],['classes','Class Skills']];
 $('#tabs').innerHTML=VIEWS.map(([k,l,n])=>`<a href="#${k}">${l}${n?`<small>${n}</small>`:''}</a>`).join('');
 
 /* chips helper */
@@ -415,9 +449,40 @@ function drawP(){const q=S.pq;
   let h='';if(S.psort==='rar'){for(const c of CATS){const g=L.filter(p=>p.cat===c).sort(so);if(g.length)h+=`<div class="grp"><h3>${c}</h3><span>${g.length}</span>${c==='Hidden'?`<button class="chip" data-rev aria-pressed="${S.reveal}">${S.reveal?'Hide spoilers':'Reveal spoilers'}</button>`:''}</div><div class="grid">${g.map(pItem).join('')}</div>`}}
   else h=L.length?`<div class="grid">${L.sort(so).map(pItem).join('')}</div>`:'';
   $('#plist').innerHTML=h||'<div class="empty">No power matches. Clear a filter or try another word.</div>'}
-$('#plist').onclick=e=>{if(e.target.closest('[data-rev]')){S.reveal=!S.reveal;save();drawP();drawS();pDetail(S.psel);return}const b=e.target.closest('.item');if(b)selP(b.dataset.id,true)};
+$('#plist').onclick=e=>{if(e.target.closest('[data-rev]')){S.reveal=!S.reveal;save();drawP();drawS();drawE();pDetail(S.psel);return}const b=e.target.closest('.item');if(b)selP(b.dataset.id,true)};
 function selP(id,open){S.psel=id;document.querySelectorAll('#plist .item').forEach(x=>x.setAttribute('aria-current',x.dataset.id===id));pDetail(id);if(open)openSheet('#pdet')}
 function costTxt(p){if(p.type!=='A')return'None';if(p.mp)return p.mp+' MP';if(p.p.hpCost)return Math.round(p.p.hpCost*100)+'% HP';return'Half MP'}
+/* ---------- evolved forms: what level 5 does, from the game's own scaling ---------- */
+const nf=(x,d=1)=>{const r=Math.round(x*10**d)/10**d;return String(r)};
+const pc1=v=>nf(v*100)+'%';
+const DMG=new Set(['bolt','beam','cone','nova','rain','pull','dash','tk','copy','trap','skillcopy']);
+const SAME={reality:'It still strips the same share of health; evolving shortens the cooldown.',create:'It still creates one random item; evolving shortens the cooldown.',slow:'The field works the same; evolving shortens the cooldown.',recall:'The mark and return work the same; evolving shortens the cooldown.',blink:'The teleport distance stays the same; evolving shortens the cooldown.'};
+function evoInfo(p){const P=p.p,A=p.type==='A',K=actM(5),Kp=pasM(5),ch=[],sub=[];
+  const add=(l,a,b)=>ch.push([l,String(a),String(b)]);
+  if(A){
+    if(DMG.has(p.arch)||(p.arch==='blink'&&P.dmgAt)){if(P.m)add('Damage strength','×'+P.m,'×'+nf(P.m*K,2));else add('Damage','×1','×'+nf(K,2))}
+    if(p.arch==='stop')add('Freeze time',P.dur+'s',nf(P.dur*1.2,2)+'s (bosses still break free fast)');
+    if(p.arch==='barrier'){add('Absorbs',pc1(P.amt)+' of max HP',pc1(P.amt*K)+' of max HP');sub.push([pc1(P.amt),pc1(P.amt*K)])}
+    if(p.arch==='buff'){if(P.atk){add('Attack bonus','+'+pc1(P.atk),'+'+pc1(P.atk*K));sub.push(['+'+pc1(P.atk),'+'+pc1(P.atk*K)])}
+      if(P.def){add('Defense bonus','+'+P.def,'+'+nf(P.def*K));sub.push(['+'+P.def+' defense','+'+nf(P.def*K)+' defense'])}
+      if(P.aspd)add('Attack speed','+'+pc1(P.aspd),'+'+pc1(P.aspd*K));if(P.spd)add('Move speed','+'+pc1(P.spd),'+'+pc1(P.spd)+' (unchanged)')}
+    if(p.arch==='heal'){add('Heals',pc1(P.pct)+' of max HP',pc1(P.pct*K)+' of max HP');if(P.mp){add('Restores mana',pc1(P.mp)+' of max MP',pc1(P.mp)+' of max MP (unchanged)');sub.push([pc1(P.pct)+' of your health and mana',pc1(P.pct*K)+' of your health and '+pc1(P.mp)+' of your mana'])}else sub.push([pc1(P.pct)+' of your',pc1(P.pct*K)+' of your'])}
+    if(p.arch==='summon'){add('Ally damage','×'+P.m,'×'+nf(P.m*K,2));add('Ally health',P.hp,Math.round(P.hp*K));add('Allies last',P.dur+'s',nf(P.dur*1.3)+'s');sub.push([P.dur+' seconds',nf(P.dur*1.3)+' seconds'])}
+    if(p.arch==='monsoon')add('Monsoon lasts',P.dur+'s',nf(P.dur*1.5)+'s');
+  }
+  if(P.mods)for(const k in P.mods){if(FLAG.has(k)||!MOD[k])continue;const v=P.mods[k],w=v*Kp;add(MOD[k][0],MOD[k][1](v),MOD[k][1](w));
+    if(k==='defAdd')sub.push(['+'+v+' defense','+'+nf(w)+' defense']);
+    else if(k==='mpOnHit')sub.push([v+' mana',nf(w)+' mana']);
+    else if(!/regen|Regen/.test(k)&&Number.isInteger(Math.round(v*1000)/10)){const cap=k==='autoDodge'?.35:k==='magicResist'?.75:9;sub.push([pc1(v),pc1(Math.min(cap,w))])}}
+  if(A)add('Cooldown',p.cd+'s',nf(p.cd*cdM(5),2)+'s');
+  const fl=P.mods?Object.keys(P.mods).filter(k=>FLAG.has(k)||!MOD[k]):[];
+  const swap=t=>{let out=t;const marks=[];sub.forEach(([a,b],i)=>{if(out.split(a).length===2){out=out.replace(a,'\u0000'+i+'\u0000');marks.push([i,b])}});marks.forEach(([i,b])=>{out=out.replace('\u0000'+i+'\u0000',b)});return out};
+  const note=A&&SAME[p.arch]&&!(p.arch==='blink'&&P.dmgAt)?SAME[p.arch]:fl.length&&!ch.length?'Its effect works fully from level 1, so evolving changes the name and keeps the effect.':fl.length?'On/off parts of the effect stay the same; the numbers above grow.':'';
+  return {desc:swap(p.desc),limit:swap(p.limit),ch,note}}
+function evoBox(p){const e=evoInfo(p);
+  return `<div class="evbox"><div class="eh"><b><span class="star">★</span>${esc(p.evo)}</b><span>Evolved form</span></div><div class="eb"><p>${esc(e.desc)}</p>${e.limit!==p.limit?`<p class="limit"><b>Limit</b>${esc(e.limit)}</p>`:''}
+   ${e.ch.length?`<div class="tbl"><table><tr><th>What changes</th><th>Level 1</th><th>Evolved</th></tr>${e.ch.map(([l,a,b])=>`<tr><td>${esc(l)}</td><td class="n">${esc(a)}</td><td class="n">${esc(b)}</td></tr>`).join('')}</table></div>`:''}
+   ${e.note?`<p class="note" style="margin:8px 0 0">${esc(e.note)}</p>`:''}</div></div>`}
 function planWhy(id){const p=PWI[id];if(p.hidden)return'Hidden powers are earned, not chosen.';if(S.plan.includes(id))return'';if(S.plan.length>=3)return'Your plan already holds 3 gifts.';
   const sp=S.plan.reduce((a,i)=>a+COST[PWI[i].rar],0);if(sp+COST[p.rar]>7)return`Not enough soul points: ${7-sp} left, this costs ${COST[p.rar]}.`;
   if(p.rar>=3&&S.plan.some(i=>PWI[i].rar>=3))return'Only one Legendary or Divine gift per soul.';return''}
@@ -437,6 +502,7 @@ function pDetail(id){const p=PWI[id],sec=pSecret(p),A=p.type==='A',P=p.p;
    <div class="evo"><div class="n"><span>Level 1</span><b>${sec?'??????':esc(p.name)}</b></div><div class="arrow" aria-hidden="true">${[1,2,3,4,5].map(l=>`<i style="--f:${l/5}"></i>`).join('')}</div><div class="n to"><span>Evolves at Lv 5</span><b>${sec?'??????':esc(p.evo)}</b></div></div>
    ${sec?`<p>Details are hidden to avoid spoilers. Use <b>Reveal spoilers</b> beside the Hidden group to see them.</p>`:`<p>${esc(p.desc)}</p><p class="limit"><b>Limit</b>${esc(p.limit)}</p>`}
    ${p.hidden?`<p class="how"><b>How it awakens</b>${esc(HINT[p.hidden]||'Earned in the story.')}</p>`:''}
+   ${sec?'':evoBox(p)}
    ${sec?'':`<dl class="kv">${kv.map(([a,b])=>`<div><dt>${a}</dt><dd>${esc(b)}</dd></div>`).join('')}</dl>
    <div class="sec">Evolution ladder</div><div class="tbl"><table><tr>${heads.map(h=>`<th>${h}</th>`).join('')}</tr>${rows}</table></div>
    <p class="note">${A?'About 180 casts to evolve, fewer when it lands kills. With Skill Evolution, about 90.':'Evolves after about 180 enemies defeated, or 90 with Skill Evolution.'}</p>`}
@@ -445,10 +511,22 @@ function pDetail(id){const p=PWI[id],sec=pSecret(p),A=p.type==='A',P=p.p;
 $('#pdet').onclick=e=>{if(e.target.closest('[data-close]'))return closeSheet();const b=e.target.closest('[data-plan]');if(!b)return;const id=b.dataset.plan;
   S.plan=S.plan.includes(id)?S.plan.filter(i=>i!==id):S.plan.concat(id);save();drawPlan();pDetail(id)};
 
+/* ---------- evolved gallery ---------- */
+chips($('#ecat'),CATS.map(c=>[c,c,PW.filter(p=>p.cat===c).length]),'ecat',drawE);
+chips($('#erar'),PRAR.map((r,i)=>[i,r,PW.filter(p=>p.rar===i).length,RC[i]]),'erar',drawE);
+$('#eq').oninput=e=>{S.eq=e.target.value.trim().toLowerCase();drawE()};
+function eCard(p){const sec=pSecret(p),e=evoInfo(p),top=e.ch.slice(0,3);
+  return `<button class="ecard${sec?' secret':''}" data-id="${p.id}" style="--rc:${RC[p.rar]}"><span class="top">${pGlyph(p,sec)}<span><b>${sec?'Hidden evolution':esc(p.evo)}</b><small>Lv 5 of <i>${sec?'??????':esc(p.name)}</i> · ${PRAR[p.rar]}</small></span></span><p>${sec?'Reveal spoilers in the Divine Powers tab to read this one.':esc(e.desc)}</p>${sec?'':`<span class="deltas">${top.map(([l,a,b])=>`<span class="delta">${esc(l)} ${esc(a)} → <em>${esc(b.replace(/ \(.*\)$/,''))}</em></span>`).join('')}</span>`}</button>`}
+function drawE(){const q=S.eq;const L=PW.filter(p=>(!S.ecat||p.cat===S.ecat)&&(S.erar==null||p.rar===S.erar)&&(!q||(!pSecret(p)&&(p.evo+' '+p.name+' '+p.desc).toLowerCase().includes(q))));
+  $('#ecount').textContent=`${L.length} of ${PW.length}`;let h='';
+  for(const c of CATS){const g=L.filter(p=>p.cat===c).sort((a,b)=>a.rar-b.rar||a.evo.localeCompare(b.evo));if(g.length)h+=`<div class="grp"><h3>${c}</h3><span>${g.length}</span></div><div class="egrid">${g.map(eCard).join('')}</div>`}
+  $('#elist').innerHTML=h||'<div class="empty">No evolved form matches. Clear a filter or try another word.</div>'}
+$('#elist').onclick=e=>{const b=e.target.closest('.ecard');if(!b)return;const id=b.dataset.id;location.hash='powers';S.pcat=null;S.prar=null;S.ptype=null;S.pq='';$('#pq').value='';drawP();setTimeout(()=>{selP(id,true);const el=document.querySelector(`#plist .item[data-id="${id}"]`);if(el)el.scrollIntoView({block:'center'})},30)};
+
 /* ---------- hidden skills ---------- */
 chips($('#scat'),HCATS.map(c=>[c,c,HS.filter(s=>s.cat===c).length,HCOL[c]]),'scat',drawS);
 $('#sq').oninput=e=>{S.sq=e.target.value.trim().toLowerCase();drawS()};
-$('#sreveal').onclick=()=>{S.reveal=!S.reveal;save();drawS();drawP();sDetail(S.ssel);pDetail(S.psel)};
+$('#sreveal').onclick=()=>{S.reveal=!S.reveal;save();drawS();drawP();drawE();sDetail(S.ssel);pDetail(S.psel)};
 const sSecret=s=>s.secret&&!S.reveal;
 const fmtTh=n=>n>=10000?(n/1000)+'k':n.toLocaleString('en');
 function sItem(s){const sec=sSecret(s);return `<button class="item${sec?' secret':''}" data-id="${s.id}" style="--rc:${HCOL[s.cat]}" aria-current="${S.ssel===s.id}">${sGlyph(s,sec)}<span class="t"><b>${sec?'Secret skill':esc(s.name)}</b><span class="sub">${esc(s.cond)}</span><span class="tags">${pips(s.th.length,0,HCOL[s.cat])}<span>${s.th.length===1?'1 level':'5 levels'} · from ${fmtTh(s.th[0])}</span></span></span></button>`}
@@ -520,7 +598,7 @@ $('#skT').innerHTML='<tr><th>Skill</th><th>MP</th><th>Cooldown</th></tr>'+SK.map
 function route(){const v=VIEWS.some(([k])=>k===location.hash.slice(1))?location.hash.slice(1):'powers';closeSheet();
   VIEWS.forEach(([k])=>{$('#v-'+k).hidden=k!==v});document.querySelectorAll('#tabs a').forEach(a=>{if(a.getAttribute('href')==='#'+v)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')})}
 addEventListener('hashchange',()=>{route();scrollTo(0,0)});
-route();drawP();drawS();pDetail(S.psel);sDetail(S.ssel);
+route();drawP();drawE();drawS();pDetail(S.psel);sDetail(S.ssel);
 </script>
 </body>
 </html>
