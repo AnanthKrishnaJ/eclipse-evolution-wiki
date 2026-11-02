@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Eclipse Evolution Wiki</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=M+PLUS+Rounded+1c:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+[hidden]{display:none!important}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+/* Layout: white codex page. One JRPG-blue window band carries the title and tabs (the game's own window style); below it, a list + sticky detail pane (master/detail), collapsing to a bottom sheet on phones */
+:root{
+  --paper:#ffffff;--wash:#f4f6fc;--wash2:#eaeefa;--line:#dde2f2;--line2:#c3cbe8;
+  --ink:#10163f;--ink2:#474f7e;--mute:#8389ab;
+  --win1:#2c43a8;--win2:#101a5c;--win3:#070c34;--edge:#e8eefc;--sel:#ffe07a;
+  --blue:#2c43a8;--gold:#a87400;--goldbg:#fff5d6;
+  --r0:#6b7686;--r1:#1f6fd1;--r2:#8a4fd8;--r3:#c47d00;--r4:#d1359f;
+  --f-px:'DotGothic16','M PLUS Rounded 1c',ui-monospace,monospace;
+  --f-txt:'M PLUS Rounded 1c','Hiragino Maru Gothic ProN',system-ui,sans-serif;
+  --hand:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='14' shape-rendering='crispEdges'><path d='M1.5 4.5h8v-3h2v3h7v3h-7v1h1v2h-1v1h-1v2h-9z' fill='%23ffffff' stroke='%23101a5c' stroke-width='1.4'/><path d='M3 6h5' stroke='%232c43a8'/></svg>");
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{background:var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.55 var(--f-txt);padding-block:0 56px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--win2)}
+.gut{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1180px;margin:0 auto}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+h1,h2,h3{font-family:var(--f-px);font-weight:400;text-wrap:balance;margin:0;letter-spacing:.02em}
+.num{font-family:var(--f-px);font-variant-numeric:tabular-nums}
+.eyebrow{font:800 11px var(--f-txt);letter-spacing:.16em;text-transform:uppercase;color:var(--blue)}
+
+/* JRPG window band */
+.band{background:linear-gradient(180deg,var(--win1),var(--win2) 75%,var(--win3));color:#fff;border-bottom:3px solid var(--edge);box-shadow:0 3px 0 var(--win3)}
+.hero{display:grid;grid-template-columns:1fr auto;gap:18px 28px;align-items:end;padding-block:30px 20px}
+.hero .eyebrow{color:#a8b6e8}
+.hero h1{font-size:clamp(32px,5.4vw,52px);line-height:1.05;color:var(--sel);text-shadow:3px 3px 0 var(--win3);margin-top:6px}
+.hero p{margin:10px 0 0;max-width:60ch;color:#dfe6ff;text-shadow:1px 1px 0 var(--win3)}
+.src{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:12px;font:13px var(--f-txt);color:#a8b6e8}
+.src a{color:#fff;text-decoration:underline;text-decoration-color:#6c80d8;text-underline-offset:3px}
+.src code{font:12px var(--f-px);color:var(--sel)}
+.stats{display:grid;grid-template-columns:repeat(4,auto);gap:4px 0;border:2px solid var(--edge);border-radius:7px;box-shadow:0 0 0 2px var(--win3),inset 0 0 0 2px var(--win3);background:#0c1450}
+.stats div{padding:8px 16px;text-align:center}
+.stats div+div{border-left:1px solid #3a4ca0}
+.stats b{display:block;font:400 24px/1 var(--f-px);color:#fff;text-shadow:2px 2px 0 var(--win3)}
+.stats span{font:700 10px var(--f-txt);letter-spacing:.12em;text-transform:uppercase;color:#a8b6e8}
+@media (max-width:760px){.hero{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.stats div:nth-child(3){border-left:0}.stats div:nth-child(n+3){border-top:1px solid #3a4ca0}}
+
+nav.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:8;background:var(--win2);border-bottom:2px solid var(--edge);box-shadow:0 2px 0 var(--win3)}
+nav.tabs .in{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+nav.tabs a{flex:none;position:relative;padding:12px 14px 11px 30px;font:400 15px var(--f-px);color:#a8b6e8;text-decoration:none;letter-spacing:.03em}
+nav.tabs a small{font-size:12px;color:#6c80d8;margin-left:4px}
+nav.tabs a:hover{color:#fff}
+nav.tabs a[aria-current="page"]{color:#fff;text-shadow:2px 2px 0 var(--win3)}
+nav.tabs a[aria-current="page"]::before{content:"";position:absolute;left:8px;top:50%;width:20px;height:14px;margin-top:-7px;background:var(--hand) no-repeat;animation:poke .9s steps(2) infinite}
+@keyframes poke{50%{transform:translateX(-2px)}}
+
+main{padding-top:24px}
+.intro{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;gap:10px 24px;margin-bottom:16px}
+.intro h2{font-size:28px;color:var(--ink)}
+.intro p{margin:4px 0 0;color:var(--ink2);max-width:66ch}
+
+/* Filters */
+.tools{display:grid;gap:10px;margin-bottom:14px;padding:12px;background:var(--wash);border:1px solid var(--line);border-radius:8px}
+.trow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.search{flex:1 1 240px;min-width:0;position:relative}
+.search input{width:100%;background:var(--paper);border:1.5px solid var(--line2);border-radius:6px;padding:9px 12px 9px 34px;font-size:15px}
+.search input:focus{border-color:var(--blue);outline:none;box-shadow:0 0 0 3px #2c43a822}
+.search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:var(--mute);fill:none;stroke-width:2}
+select{background:var(--paper);border:1.5px solid var(--line2);border-radius:6px;padding:8px 10px;font-size:14px}
+.count{font:13px var(--f-px);color:var(--mute);margin-left:auto}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{font:700 12px var(--f-txt);padding:5px 10px;background:var(--paper);border:1.5px solid var(--line2);color:var(--ink2);border-radius:999px;display:inline-flex;align-items:center;gap:6px}
+.chip:hover{border-color:var(--blue)}
+.chip .n{font:11px var(--f-px);color:var(--mute)}
+.chip .dot{width:8px;height:8px;border-radius:50%;background:var(--cc,var(--blue))}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+.chip[aria-pressed="true"] .n{color:#a8b6e8}
+.lbl{font:800 10px var(--f-txt);letter-spacing:.14em;text-transform:uppercase;color:var(--mute);min-width:62px}
+
+/* Master / detail */
+.md{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,420px);gap:20px;align-items:start}
+.list{min-width:0}
+.grp{display:flex;align-items:baseline;gap:10px;margin:18px 0 8px}
+.grp:first-child{margin-top:0}
+.grp h3{font-size:19px}
+.grp span{font:12px var(--f-px);color:var(--mute)}
+.grp::after{content:"";flex:1;height:1px;background:var(--line)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px}
+.item{position:relative;display:grid;grid-template-columns:42px minmax(0,1fr);gap:11px;align-items:center;text-align:left;background:var(--paper);border:1.5px solid var(--line);border-radius:8px;padding:9px 11px;min-width:0;transition:border-color .12s,box-shadow .12s}
+.item:hover{border-color:var(--line2);box-shadow:0 2px 0 var(--line)}
+.item[aria-current="true"]{border-color:var(--win1);box-shadow:0 0 0 2px var(--win1);background:#f7f9ff}
+.item[aria-current="true"]::before{content:"";position:absolute;left:-14px;top:50%;width:20px;height:14px;margin-top:-7px;background:var(--hand) no-repeat;filter:drop-shadow(0 1px 0 #fff)}
+.item .t{min-width:0}
+.item b{display:block;font:700 15px/1.25 var(--f-txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .sub{display:block;font:12.5px/1.35 var(--f-txt);color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .sub i{font-style:normal;color:var(--rc,var(--blue));font-weight:700}
+.item .tags{display:flex;gap:6px;margin-top:4px;font:11px var(--f-px);color:var(--mute)}
+.item .tags .r{color:var(--rc)}
+.item.secret b,.item.secret .sub i{filter:blur(4px)}
+.glyph{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font:400 17px/1 var(--f-px);color:#fff;text-shadow:1px 1px 0 #0008;background:radial-gradient(circle at 35% 30%,color-mix(in srgb,var(--gc) 55%,#fff),var(--gc) 50%,color-mix(in srgb,var(--gc) 60%,#000) 100%);box-shadow:0 0 0 2px var(--paper),0 0 0 3.5px var(--rc)}
+.glyph.pass{border-radius:10px}
+.glyph.rand{background:conic-gradient(#ff7a3a,#e8d23a,#62c862,#4ab0ff,#a07ef0,#ff7a3a)}
+.pips{display:inline-flex;gap:3px;align-items:center}
+.pips i{width:7px;height:7px;transform:rotate(45deg);border:1.5px solid var(--cc);background:transparent}
+.pips i.on{background:var(--cc)}
+.empty{padding:30px;text-align:center;color:var(--mute);border:1.5px dashed var(--line2);border-radius:8px}
+
+/* Detail pane */
+.detail{position:sticky;top:calc(env(safe-area-inset-top,0px) + 60px);max-height:calc(100vh - 80px);overflow:auto;background:var(--paper);border:1.5px solid var(--line2);border-radius:10px;box-shadow:0 10px 30px #10163f14;overscroll-behavior:contain}
+.dhead{background:linear-gradient(180deg,var(--win1),var(--win2));color:#fff;padding:18px;border-radius:8px 8px 0 0;border-bottom:2px solid var(--edge);display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px;align-items:center;position:relative}
+.dhead .glyph{width:56px;height:56px;font-size:22px;box-shadow:0 0 0 2px var(--win2),0 0 0 4px var(--rc2,#fff)}
+.dhead h2{font-size:24px;line-height:1.15;color:#fff;text-shadow:2px 2px 0 var(--win3)}
+.dhead small{display:block;margin-top:4px;font:12px var(--f-px);color:#a8b6e8}
+.dhead small .r{color:var(--rc2)}
+.close{display:none;position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:6px;background:#0c1450;border:2px solid var(--edge);color:#fff;font-size:16px}
+.dbody{padding:16px 18px 20px}
+.dbody p{margin:8px 0}
+.evo{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:10px;align-items:center;padding:12px;margin-bottom:12px;background:var(--wash);border:1px solid var(--line);border-radius:8px}
+.evo .n span{display:block;font:800 9px var(--f-txt);letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+.evo .n b{display:block;font:400 17px/1.2 var(--f-px)}
+.evo .n.to{text-align:right}
+.evo .n.to b{color:var(--rc)}
+.evo .arrow{display:flex;gap:3px}
+.evo .arrow i{width:8px;height:8px;transform:rotate(45deg);background:color-mix(in srgb,var(--rc) calc(var(--f)*100%),var(--line))}
+.limit{font-size:14px;color:var(--ink2);padding-left:10px;border-left:3px solid #f2b3c9}
+.limit b{color:#b8335f;font-weight:800;font-size:11px;letter-spacing:.12em;text-transform:uppercase;margin-right:6px}
+.how{font-size:14px;background:var(--goldbg);border:1px solid #efd99a;border-radius:8px;padding:10px 12px}
+.how b{color:var(--gold);font-weight:800;font-size:11px;letter-spacing:.12em;text-transform:uppercase;display:block}
+dl.kv{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin:14px 0}
+dl.kv div{background:var(--paper);padding:8px 10px;min-width:0}
+dl.kv dt{font:800 9px var(--f-txt);letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+dl.kv dd{margin:2px 0 0;font:14px var(--f-px);overflow-wrap:anywhere}
+.sec{display:flex;align-items:center;gap:8px;font:400 14px var(--f-px);color:var(--blue);margin:16px 0 6px}
+.sec::after{content:"";flex:1;height:1px;background:var(--line)}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;font:13px var(--f-txt);font-variant-numeric:tabular-nums}
+th,td{padding:7px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+th{background:var(--wash);font:800 9.5px var(--f-txt);letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+td.n{font-family:var(--f-px)}
+td.w{white-space:normal;min-width:180px}
+tr.top td{background:color-mix(in srgb,var(--rc,var(--blue)) 9%,#fff);font-weight:700}
+tr.top td.n{color:var(--rc,var(--blue))}
+.note{font-size:13px;color:var(--mute);margin:8px 0}
+.btn{font:400 14px/1 var(--f-px);letter-spacing:.04em;padding:10px 14px;border-radius:6px;background:linear-gradient(#3a55c8,#1a2878);border:2px solid var(--edge);color:#fff;box-shadow:0 0 0 2px var(--win3);text-shadow:1px 1px 0 var(--win3)}
+.btn:hover{background:linear-gradient(#4a68e0,#22348e)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.ghost{background:var(--paper);color:var(--ink);border:1.5px solid var(--line2);box-shadow:none;text-shadow:none}
+.btn.ghost:hover{border-color:var(--blue)}
+.why{font-size:13px;color:#b8335f}
+.acts{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:16px}
+.shares{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.shares button{font:700 12px var(--f-txt);padding:4px 9px;border-radius:999px;border:1.5px solid var(--line2);background:var(--paper)}
+.shares button:hover{border-color:var(--blue)}
+
+.scrim{display:none}
+@media (max-width:900px){
+  .md{grid-template-columns:1fr}
+  .detail{position:fixed;top:auto;left:0;right:0;bottom:0;z-index:40;max-height:86%;border-radius:14px 14px 0 0;transform:translateY(105%);transition:transform .22s ease;box-shadow:0 -10px 40px #10163f40;padding-bottom:env(safe-area-inset-bottom,0px)}
+  .detail.open{transform:none}
+  .dhead{border-radius:12px 12px 0 0}
+  .close{display:block}
+  .scrim{display:block;position:fixed;inset:0;z-index:39;background:#070c3466;opacity:0;pointer-events:none;transition:opacity .2s}
+  .scrim.on{opacity:1;pointer-events:auto}
+  .item[aria-current="true"]::before{display:none}
+}
+
+/* Prose pages */
+.cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:860px){.cols{grid-template-columns:1fr}}
+.card{background:var(--paper);border:1.5px solid var(--line);border-radius:10px;padding:18px;min-width:0}
+.card.tint{background:var(--wash)}
+.card h3{font-size:21px;margin-bottom:6px}
+.card p{margin:8px 0;color:var(--ink2);max-width:62ch}
+.formula{font:14px var(--f-px);background:var(--paper);border:1.5px solid var(--line2);border-radius:6px;padding:9px 12px;margin:8px 0;overflow-x:auto;white-space:nowrap}
+.formula em{font-style:normal;color:var(--blue)}
+ul.list2{margin:8px 0;padding-left:20px;color:var(--ink2)}
+ul.list2 li{margin:5px 0}
+ul.list2 b{color:var(--ink)}
+svg text{font-family:var(--f-px)}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font:12px var(--f-px);color:var(--ink2);margin-top:6px}
+.legend i{display:inline-block;width:14px;height:3px;vertical-align:middle;margin-right:6px;border-radius:2px}
+.rar5{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-top:8px}
+@media (max-width:560px){.rar5{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.rc{border:1.5px solid var(--line);border-top:4px solid var(--rc);border-radius:6px;padding:9px 10px;background:var(--paper)}
+.rc b{font:400 15px var(--f-px);color:var(--rc)}
+.rc div{font:12px var(--f-txt);color:var(--ink2)}
+
+/* Planner */
+.slots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:12px 0}
+@media (max-width:640px){.slots{grid-template-columns:1fr}}
+.slot{min-height:76px;border:2px dashed var(--line2);border-radius:10px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px;background:var(--paper)}
+.slot.on{border-style:solid;border-color:var(--rc);box-shadow:0 0 0 1px var(--rc)}
+.slot.e{grid-template-columns:1fr;text-align:center;color:var(--mute);font:13px var(--f-px)}
+.slot .t{min-width:0;background:none;border:0;padding:0;text-align:left}
+.slot b{display:block;font:700 15px/1.25 var(--f-txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.slot small{font:11px var(--f-px);color:var(--mute)}
+.slot .rm{width:30px;height:30px;border-radius:6px;border:1.5px solid var(--line2);background:var(--paper);color:var(--ink2)}
+.meter{height:14px;border-radius:999px;background:var(--wash2);overflow:hidden;display:grid;grid-template-columns:repeat(7,1fr);gap:2px;padding:2px}
+.meter i{border-radius:999px;background:var(--line)}
+.meter i.on{background:linear-gradient(#ffd96a,#e0a820)}
+.mrow{display:flex;justify-content:space-between;font:13px var(--f-px);color:var(--ink2);margin-bottom:6px}
+.rules{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.rule{font:700 12px var(--f-txt);padding:5px 10px;border-radius:999px;background:var(--wash);border:1.5px solid var(--line)}
+.rule.ok{border-color:#9fd6a8;background:#effaf1;color:#1f7a32}
+.rule.bad{border-color:#f2b3c9;background:#fdf0f4;color:#b8335f}
+
+/* Classes */
+.classes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:860px){.classes{grid-template-columns:1fr}}
+.cls{border:1.5px solid var(--line);border-radius:10px;overflow:hidden;background:var(--paper)}
+.cls header{background:linear-gradient(180deg,var(--win1),var(--win2));color:#fff;padding:12px 14px;border-bottom:2px solid var(--edge)}
+.cls h3{font-size:22px;text-shadow:2px 2px 0 var(--win3)}
+.cls header small{font:12px var(--f-px);color:var(--sel)}
+.cls .b{padding:12px 14px}
+.cls p{margin:0 0 10px;color:var(--ink2);font-size:14px}
+.bars{display:grid;gap:5px}
+.bar{display:grid;grid-template-columns:40px minmax(0,1fr) 34px;gap:8px;align-items:center;font:11px var(--f-px);color:var(--ink2)}
+.bar span{height:8px;border-radius:999px;background:var(--wash2);overflow:hidden}
+.bar span i{display:block;height:100%;background:var(--blue);border-radius:999px}
+.bar em{font-style:normal;text-align:right;color:var(--ink)}
+.tree{position:relative;aspect-ratio:1;width:100%;max-width:400px;margin:10px auto 0}
+.tree svg{position:absolute;inset:0;width:100%;height:100%}
+.tn{position:absolute;transform:translate(-50%,-50%);width:30%;text-align:center}
+.tn span{display:grid;place-items:center;width:48px;height:48px;margin:0 auto 5px;border:2px solid var(--line2);background:var(--paper);border-radius:8px;transform:rotate(45deg)}
+.tn span em{transform:rotate(-45deg);font:normal 15px var(--f-px)}
+.tn.sk span{border-color:var(--win1);background:linear-gradient(var(--win1),var(--win2));color:#fff}
+.tn b{display:block;font:700 12.5px/1.2 var(--f-txt)}
+.tn small{font:10px var(--f-px);color:var(--mute)}
+footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--line);font-size:13px;color:var(--mute)}
+footer a{color:var(--blue)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="band gut">
+  <div class="wrap hero">
+    <div>
+      <div class="eyebrow">ECLIPSE: The Last Kingdom</div>
+      <h1>Skill Evolution Wiki</h1>
+      <p>Every divine power the goddess Aurelia can grant and every hidden skill your body learns by doing: what each one does, how it levels up, and what it becomes.</p>
+      <div class="src">Built from <a href="https://github.com/AnanthKrishnaJ/eclipse-the-last-kingdom" target="_blank" rel="noopener">AnanthKrishnaJ/eclipse-the-last-kingdom</a> <span>commit <code>{{COMMIT}}</code></span></div>
+    </div>
+    <div class="stats" id="stats"></div>
+  </div>
+</div>
+<nav class="tabs gut" aria-label="Wiki sections"><div class="wrap in" id="tabs"></div></nav>
+
+<main class="gut"><div class="wrap">
+
+<section id="v-powers">
+  <div class="intro"><div><h2>Divine Powers</h2><p>Chosen at the goddess's altar, levelled by use. At level 5 each power evolves and takes a new name.</p></div></div>
+  <div class="tools">
+    <div class="trow">
+      <label class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="pq" type="search" placeholder="Search a power or its evolved name, e.g. Chronos" aria-label="Search powers"></label>
+      <select id="psort" aria-label="Sort powers"><option value="rar">Sort: rarity</option><option value="name">Sort: A to Z</option><option value="cost">Sort: soul cost</option><option value="cd">Sort: cooldown</option></select>
+      <span class="count" id="pcount"></span>
+    </div>
+    <div class="trow"><span class="lbl">Category</span><div class="chips" id="pcat"></div></div>
+    <div class="trow"><span class="lbl">Rarity</span><div class="chips" id="prar"></div></div>
+    <div class="trow"><span class="lbl">Type</span><div class="chips" id="ptype"></div></div>
+  </div>
+  <div class="md"><div class="list" id="plist"></div><aside class="detail" id="pdet" aria-live="polite"></aside></div>
+</section>
+
+<section id="v-skills" hidden>
+  <div class="intro"><div><h2>Hidden Skills</h2><p>Never chosen. Repeat an action and your body adapts: each skill has up to five levels, unlocked at set counts, and applies automatically.</p></div></div>
+  <div class="tools">
+    <div class="trow">
+      <label class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="sq" type="search" placeholder="Search a skill, action or effect, e.g. rain" aria-label="Search hidden skills"></label>
+      <button class="chip" id="sreveal" aria-pressed="false">Show secret names</button>
+      <span class="count" id="scount"></span>
+    </div>
+    <div class="trow"><span class="lbl">Category</span><div class="chips" id="scat"></div></div>
+  </div>
+  <div class="md"><div class="list" id="slist"></div><aside class="detail" id="sdet" aria-live="polite"></aside></div>
+</section>
+
+<section id="v-growth" hidden>
+  <div class="intro"><div><h2>How Growth Works</h2><p>Powers and hidden skills both have five levels, but they grow in different ways.</p></div></div>
+  <div class="cols">
+    <div class="card">
+      <div class="eyebrow">Divine powers</div>
+      <h3>Use it and it evolves</h3>
+      <ul class="list2">
+        <li><b>Active powers</b> gain 1 point per cast, and 2 more when the cast lands a killing blow.</li>
+        <li><b>Passive powers</b> gain 1 point for every enemy you defeat.</li>
+        <li>The power <b>Skill Evolution</b> doubles every point, for all your powers.</li>
+      </ul>
+      <div class="formula">Points to next level = <em>6 × level²</em></div>
+      <div class="formula">Active power = <em>1 + 0.15 × (Lv − 1)</em>, then <em>× 1.25</em> when evolved</div>
+      <div class="formula">Passive effect = <em>1 + 0.15 × (Lv − 1)</em>, <em>+ 0.25</em> when evolved</div>
+      <div class="formula">Cooldown = base × <em>(1 − 0.05 × (Lv − 1))</em></div>
+      <div class="tbl" style="margin-top:12px"><table id="xpT"></table></div>
+      <p class="note">On/off effects such as Appraisal or Treasure Sense work fully from level 1 and do not scale.</p>
+    </div>
+    <div class="card tint">
+      <div class="eyebrow">Strength by level</div>
+      <div id="curve"></div>
+      <div class="legend"><span><i style="background:var(--blue)"></i>Active power</span><span><i style="background:var(--r4)"></i>Passive effect</span><span><i style="background:var(--r3)"></i>Cooldown</span></div>
+    </div>
+    <div class="card">
+      <div class="eyebrow">Hidden skills</div>
+      <h3>Repeat it and you adapt</h3>
+      <p>Each hidden skill watches one counter, such as slimes defeated or seconds spent in the rain. When the counter passes a threshold, the skill gains a level. Several skills can watch the same counter, so one habit can teach you more than one thing.</p>
+      <div class="formula">Most thresholds = <em>base × 1, 3, 7, 15, 30</em></div>
+      <div class="formula">Effect at level L = <em>per-level effect × L</em></div>
+      <p>Hidden skill bonuses add on top of your powers. Twenty-five secret skills keep their names hidden in the game until you make progress on them.</p>
+    </div>
+    <div class="card tint">
+      <div class="eyebrow">Caps</div>
+      <h3>Limits that stop stacking</h3>
+      <div class="tbl"><table id="capT"></table></div>
+    </div>
+  </div>
+</section>
+
+<section id="v-planner" hidden>
+  <div class="intro"><div><h2>Soul Planner</h2><p>Plan your three starting gifts before the altar. The same rules as the game apply.</p></div></div>
+  <div class="cols">
+    <div class="card">
+      <div class="mrow"><span>Soul points</span><span id="spT"></span></div>
+      <div class="meter" id="spM"></div>
+      <div class="slots" id="slots"></div>
+      <div class="acts" style="margin-top:4px"><button class="btn" id="rnd">Random valid gifts</button><button class="btn ghost" id="clr">Clear plan</button></div>
+      <div class="rules" id="rules"></div>
+      <p class="note">Add powers from the Divine Powers tab. Your plan is kept in this browser only.</p>
+    </div>
+    <div class="card tint">
+      <div class="eyebrow">At the altar</div>
+      <h3>How the choice works</h3>
+      <ul class="list2">
+        <li>Carry up to <b>3</b> chosen gifts, paid from <b>7 soul points</b>.</li>
+        <li>Only <b>one</b> Legendary or Divine gift fits in a soul.</li>
+        <li>Spend every soul point and <b>Fate's Gacha</b> drops one bonus gift from the powers you did not choose.</li>
+        <li>The four <b>hidden powers</b> are free and earned in the Kochi opening.</li>
+        <li>Active powers fill your 4 power slots (Z, X, C, V) in the order you get them.</li>
+      </ul>
+      <div class="rar5" id="rarCost"></div>
+    </div>
+  </div>
+</section>
+
+<section id="v-classes" hidden>
+  <div class="intro"><div><h2>Class Skills</h2><p>Class skills do not evolve. Each character level gives one skill point to spend in the talent tree, up to rank 3 per skill.</p></div></div>
+  <div class="classes" id="cls"></div>
+  <div class="cols" style="margin-top:20px">
+    <div class="card"><div class="eyebrow">Hotbar skills · keys 1–4</div><div class="tbl" style="margin-top:8px"><table id="skT"></table></div></div>
+    <div class="card tint"><div class="eyebrow">Talent tree</div><div class="tree" id="tree"></div><p class="note">Lines show what must be learned first. Frost Nova also needs character level 3, and Iron Skin needs Vitality rank 2.</p></div>
+  </div>
+</section>
+
+<footer>Data read from <code>eclipse.html</code> in the repository. This page is separate from the game and changes nothing in it.</footer>
+</div></main>
+<div class="scrim" id="scrim"></div>
+
+<script>
+const PW=/*PW*/[],HS=/*HS*/[];
+const PRAR=['Common','Rare','Epic','Legendary','Divine'],RC=['var(--r0)','var(--r1)','var(--r2)','var(--r3)','var(--r4)'];
+const RCD=['#cfd6de','#6ab0ff','#c08aff','#ffc04a','#ff7ae0'];
+const PCOL={fire:'#f0652a',water:'#2f8fe0',ice:'#5fb8e8',bolt:'#d4b414',wind:'#3fb886',earth:'#b07d3e',light:'#e0b84a',dark:'#7f45e0',grav:'#5a3fd0',space:'#b469e0',arcane:'#8761e0',holy:'#d9a93a',nature:'#45b045',gold:'#d6a020',void:'#55289e'};
+const CATS=['Elemental','Physical','Magical','Summoning','Special','Hidden'],COST=[1,2,3,4,5];
+const HCATS=['Hunting','Weapons','Magic','Combat','Body','Survival','Exploration','Social','Secret'];
+const HCOL={Hunting:'#d4573a',Weapons:'#4a6fd1',Magic:'#8a4fd8',Combat:'#c48a00',Body:'#d43a5a',Survival:'#2f9a3f',Exploration:'#2a7fd1',Social:'#b08a00',Secret:'#6b5ab8'};
+const HINT={kalari:'Learn something real from a teacher back home.',savedGirl:'When the moment comes, do not hesitate.',askedEclipse:'Ask the goddess the question she is avoiding.',fellQuiet:'Sometimes the bravest answer is to say nothing.'};
+const ARCH={bolt:'Projectile',rain:'Targeted rain',beam:'Beam',cone:'Cone',stop:'Freeze field',barrier:'Shield',nova:'Burst',dash:'Dash strike',pull:'Vortex',buff:'Self buff',blink:'Teleport',recall:'Mark & return',heal:'Healing',tk:'Lift & slam',copy:'Counter-copy',slow:'Slow field',summon:'Summon',trap:'Trap',skillcopy:'Mimic',reality:'Rewrite',create:'Creation',monsoon:'Weather',passive:'Always on'};
+const ST={burn:'Burn',chill:'Chill',stun:'Stun',rand:'Random'};
+const FLAG=new Set(['familiar','tamer','appraisal','system','treasure','dowse','revive','stealKill','absorbKill','evoFaster','craftDouble','adaptive','invSlots','rainRegen']);
+const pc=v=>{const x=v*100;return (Math.abs(x-Math.round(x))<.05?Math.round(x):x.toFixed(1))+'%'};
+const MOD={burnOnHit:['Ignite',v=>pc(v)],atkPct:['Attack',v=>'+'+pc(v)],regen:['Regen',v=>(v*100).toFixed(2)+'%/s'],spdPct:['Speed',v=>'+'+pc(v)],dodgeCd:['Roll recovery',v=>'+'+pc(v)],undeadPct:['Vs undead',v=>'+'+pc(v)],critAdd:['Critical',v=>'+'+pc(v)],autoDodge:['Evasion',v=>pc(Math.min(.35,v))],aspd:['Atk speed',v=>'+'+pc(v)],hpPct:['Health',v=>'+'+pc(v)],parryWin:['Parry window',v=>'+'+pc(v)],defAdd:['Defense',v=>'+'+v.toFixed(1)],unarmedPct:['Bare hands',v=>'+'+pc(v)],rage:['Rage',v=>'+'+pc(v)],secondWind:['Second wind',v=>pc(v)],mpOnHit:['MP per hit',v=>'+'+v.toFixed(1)],magicResist:['Magic resist',v=>pc(Math.min(.75,v))],mpPct:['Max MP',v=>'+'+pc(v)],mpRegen:['MP regen',v=>'+'+v.toFixed(2)+'/s'],lootPct:['Loot',v=>'+'+pc(v)],futureSight:['Wind-ups',v=>'+'+pc(v)],affPct:['Affection',v=>'+'+pc(v)],goldPct:['Gold',v=>'+'+pc(v)],xpPct:['XP',v=>'+'+pc(v)],allPct:['All stats',v=>'+'+pc(v)],foodPct:['Food heal',v=>'+'+pc(v)],nightPct:['Night dmg',v=>'+'+pc(v)]};
+const need=l=>6*l*l,actM=l=>(1+.15*(l-1))*(l>=5?1.25:1),pasM=l=>1+.15*(l-1)+(l>=5?.25:0),cdM=l=>1-.05*(l-1);
+const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const PWI=Object.fromEntries(PW.map(p=>[p.id,p])),HSI=Object.fromEntries(HS.map(s=>[s.id,s]));
+const HBY={};HS.forEach(s=>(HBY[s.ctr]=HBY[s.ctr]||[]).push(s.id));
+const mono=n=>{const w=n.replace(/['’]/g,'').split(/[\s-]+/).filter(Boolean);return (w.length>1?w[0][0]+w[1][0]:w[0].slice(0,2)).toUpperCase()};
+function pGlyph(p,secret){const c=p.p&&p.p.col,gc=PCOL[c]||['#7c8696','#3f6fb8','#7a4fbf','#b8862a','#b8459e'][p.rar];
+  return `<span class="glyph${c==='rand'?' rand':''}${p.type==='P'?' pass':''}" style="--gc:${gc};--rc:${RC[p.rar]};--rc2:${RCD[p.rar]}" aria-hidden="true">${secret?'?':esc(mono(p.name))}</span>`}
+function sGlyph(s,secret){return `<span class="glyph pass" style="--gc:${HCOL[s.cat]};--rc:${HCOL[s.cat]};--rc2:#fff" aria-hidden="true">${secret?'?':esc(mono(s.name))}</span>`}
+const pips=(n,on,c)=>`<span class="pips" style="--cc:${c}">${Array.from({length:n},(_,i)=>`<i class="${i<on?'on':''}"></i>`).join('')}</span>`;
+
+/* state */
+let S={pq:'',pcat:null,prar:null,ptype:null,psort:'rar',psel:'fire',sq:'',scat:null,ssel:HS[0].id,reveal:false,plan:[]};
+try{const s=JSON.parse(localStorage.getItem('eclipse-wiki-v2')||'{}');if(Array.isArray(s.plan))S.plan=s.plan.filter(id=>PWI[id]&&!PWI[id].hidden).slice(0,3);S.reveal=!!s.reveal}catch(e){}
+const save=()=>{try{localStorage.setItem('eclipse-wiki-v2',JSON.stringify({plan:S.plan,reveal:S.reveal}))}catch(e){}};
+const mobile=()=>matchMedia('(max-width:900px)').matches;
+
+/* header */
+$('#stats').innerHTML=[[PW.length,'Powers'],[HS.length,'Hidden skills'],[5,'Levels each'],[180,'Points to evolve']].map(([n,l])=>`<div><b>${n}</b><span>${l}</span></div>`).join('');
+const VIEWS=[['powers','Divine Powers',PW.length],['skills','Hidden Skills',HS.length],['growth','How Growth Works'],['planner','Soul Planner'],['classes','Class Skills']];
+$('#tabs').innerHTML=VIEWS.map(([k,l,n])=>`<a href="#${k}">${l}${n?`<small>${n}</small>`:''}</a>`).join('');
+
+/* chips helper */
+function chips(el,items,key,after){const draw=()=>{el.innerHTML=items.map(([v,l,n,c])=>`<button class="chip" data-v="${v}" aria-pressed="${S[key]===v}" ${c?`style="--cc:${c}"`:''}>${c?'<span class="dot"></span>':''}${l}<span class="n">${n}</span></button>`).join('')};draw();
+  el.onclick=e=>{const b=e.target.closest('.chip');if(!b)return;let v=b.dataset.v;if(/^\d$/.test(v))v=+v;S[key]=S[key]===v?null:v;draw();after()}}
+
+/* ---------- powers ---------- */
+chips($('#pcat'),CATS.map(c=>[c,c,PW.filter(p=>p.cat===c).length]),'pcat',drawP);
+chips($('#prar'),PRAR.map((r,i)=>[i,r,PW.filter(p=>p.rar===i).length,RC[i]]),'prar',drawP);
+chips($('#ptype'),[['A','Active',PW.filter(p=>p.type==='A').length],['P','Passive',PW.filter(p=>p.type==='P').length]],'ptype',drawP);
+$('#pq').oninput=e=>{S.pq=e.target.value.trim().toLowerCase();drawP()};
+$('#psort').onchange=e=>{S.psort=e.target.value;drawP()};
+const pSecret=p=>p.hidden&&!S.reveal;
+function pItem(p){const sec=pSecret(p);return `<button class="item${sec?' secret':''}" data-id="${p.id}" style="--rc:${RC[p.rar]}" aria-current="${S.psel===p.id}">${pGlyph(p,sec)}<span class="t"><b>${sec?'Hidden power':esc(p.name)}</b><span class="sub">→ <i>${sec?'??????':esc(p.evo)}</i></span><span class="tags"><span class="r">${PRAR[p.rar]}</span><span>${p.type==='A'?'Active':'Passive'}</span><span>${p.hidden?'Free':COST[p.rar]+' SP'}</span></span></span></button>`}
+function drawP(){const q=S.pq;
+  let L=PW.filter(p=>(!S.pcat||p.cat===S.pcat)&&(S.prar==null||p.rar===S.prar)&&(!S.ptype||p.type===S.ptype)&&(!q||(!pSecret(p)&&(p.name+' '+p.evo+' '+p.desc+' '+p.cat).toLowerCase().includes(q))));
+  const so={rar:(a,b)=>a.rar-b.rar||a.name.localeCompare(b.name),name:(a,b)=>a.name.localeCompare(b.name),cost:(a,b)=>COST[a.rar]-COST[b.rar]||a.name.localeCompare(b.name),cd:(a,b)=>(a.type==='A'?a.cd:999)-(b.type==='A'?b.cd:999)||a.name.localeCompare(b.name)}[S.psort];
+  $('#pcount').textContent=`${L.length} of ${PW.length}`;
+  let h='';if(S.psort==='rar'){for(const c of CATS){const g=L.filter(p=>p.cat===c).sort(so);if(g.length)h+=`<div class="grp"><h3>${c}</h3><span>${g.length}</span>${c==='Hidden'?`<button class="chip" data-rev aria-pressed="${S.reveal}">${S.reveal?'Hide spoilers':'Reveal spoilers'}</button>`:''}</div><div class="grid">${g.map(pItem).join('')}</div>`}}
+  else h=L.length?`<div class="grid">${L.sort(so).map(pItem).join('')}</div>`:'';
+  $('#plist').innerHTML=h||'<div class="empty">No power matches. Clear a filter or try another word.</div>'}
+$('#plist').onclick=e=>{if(e.target.closest('[data-rev]')){S.reveal=!S.reveal;save();drawP();drawS();pDetail(S.psel);return}const b=e.target.closest('.item');if(b)selP(b.dataset.id,true)};
+function selP(id,open){S.psel=id;document.querySelectorAll('#plist .item').forEach(x=>x.setAttribute('aria-current',x.dataset.id===id));pDetail(id);if(open)openSheet('#pdet')}
+function costTxt(p){if(p.type!=='A')return'None';if(p.mp)return p.mp+' MP';if(p.p.hpCost)return Math.round(p.p.hpCost*100)+'% HP';return'Half MP'}
+function planWhy(id){const p=PWI[id];if(p.hidden)return'Hidden powers are earned, not chosen.';if(S.plan.includes(id))return'';if(S.plan.length>=3)return'Your plan already holds 3 gifts.';
+  const sp=S.plan.reduce((a,i)=>a+COST[PWI[i].rar],0);if(sp+COST[p.rar]>7)return`Not enough soul points: ${7-sp} left, this costs ${COST[p.rar]}.`;
+  if(p.rar>=3&&S.plan.some(i=>PWI[i].rar>=3))return'Only one Legendary or Divine gift per soul.';return''}
+function pDetail(id){const p=PWI[id],sec=pSecret(p),A=p.type==='A',P=p.p;
+  const kv=[['Type',A?'Active':'Passive'],['Form',ARCH[p.arch]||p.arch],['Cost',costTxt(p)],['Cooldown',A?p.cd+'s':'None'],['Soul pts',p.hidden?'Free':COST[p.rar]]];
+  if(P.m)kv.push(['Strength','×'+P.m]);if(P.r)kv.push(['Radius',P.r]);if(P.len)kv.push(['Length',P.len]);if(P.d)kv.push(['Distance',P.d]);if(P.dur)kv.push(['Duration',P.dur+'s']);if(P.n)kv.push([p.arch==='summon'?'Summons':'Count',P.n]);if(P.hits)kv.push(['Hits',P.hits]);if(P.chain)kv.push(['Chains',P.chain]);if(P.hp)kv.push(['Ally HP',P.hp]);if(P.pct)kv.push(['Heals',Math.round(P.pct*100)+'%']);if(P.amt)kv.push(['Absorbs',Math.round(P.amt*100)+'% HP']);if(P.st)kv.push(['Inflicts',ST[P.st]||P.st]);if(P.pen)kv.push(['Pierces','Defense']);
+  while(kv.length%3)kv.push(['','']);
+  const mods=P.mods?Object.keys(P.mods).filter(k=>MOD[k]&&!FLAG.has(k)):[];
+  const heads=['Level','Next'].concat(A?['Power'].concat(P.m?['Strength']:[]).concat(['Cooldown']):['Effect'].concat(mods.map(k=>MOD[k][0])));
+  let rows='';for(let l=1;l<=5;l++){const c=[`<td>${l===5?'Lv 5 ★':'Lv '+l}</td>`,`<td class="n">${l<5?need(l)+' pts':'Max'}</td>`];
+    if(A){c.push(`<td class="n">×${actM(l).toFixed(2)}</td>`);if(P.m)c.push(`<td class="n">×${(P.m*actM(l)).toFixed(2)}</td>`);c.push(`<td class="n">${(p.cd*cdM(l)).toFixed(2)}s</td>`)}
+    else{c.push(`<td class="n">×${pasM(l).toFixed(2)}</td>`);mods.forEach(k=>c.push(`<td class="n">${MOD[k][1](P.mods[k]*pasM(l))}</td>`))}
+    rows+=`<tr class="${l===5?'top':''}">${c.join('')}</tr>`}
+  const inPlan=S.plan.includes(id),why=planWhy(id);
+  $('#pdet').innerHTML=`<div class="dhead" style="--rc2:${RCD[p.rar]}">${pGlyph(p,sec)}<div><h2>${sec?'Hidden power':esc(p.name)}</h2><small><span class="r">${PRAR[p.rar]}</span> · ${p.cat} · ${A?'Active':'Passive'}</small></div><button class="close" data-close aria-label="Close">✕</button></div>
+  <div class="dbody" style="--rc:${RC[p.rar]}">
+   <div class="evo"><div class="n"><span>Level 1</span><b>${sec?'??????':esc(p.name)}</b></div><div class="arrow" aria-hidden="true">${[1,2,3,4,5].map(l=>`<i style="--f:${l/5}"></i>`).join('')}</div><div class="n to"><span>Evolves at Lv 5</span><b>${sec?'??????':esc(p.evo)}</b></div></div>
+   ${sec?`<p>Details are hidden to avoid spoilers. Use <b>Reveal spoilers</b> beside the Hidden group to see them.</p>`:`<p>${esc(p.desc)}</p><p class="limit"><b>Limit</b>${esc(p.limit)}</p>`}
+   ${p.hidden?`<p class="how"><b>How it awakens</b>${esc(HINT[p.hidden]||'Earned in the story.')}</p>`:''}
+   ${sec?'':`<dl class="kv">${kv.map(([a,b])=>`<div><dt>${a}</dt><dd>${esc(b)}</dd></div>`).join('')}</dl>
+   <div class="sec">Evolution ladder</div><div class="tbl"><table><tr>${heads.map(h=>`<th>${h}</th>`).join('')}</tr>${rows}</table></div>
+   <p class="note">${A?'About 180 casts to evolve, fewer when it lands kills. With Skill Evolution, about 90.':'Evolves after about 180 enemies defeated, or 90 with Skill Evolution.'}</p>`}
+   ${p.hidden?'':`<div class="acts"><button class="btn${inPlan?' ghost':''}" data-plan="${id}" ${!inPlan&&why?'disabled':''}>${inPlan?'Remove from plan':'Add to soul plan'}</button>${!inPlan&&why?`<span class="why">${esc(why)}</span>`:''}</div>`}
+  </div>`}
+$('#pdet').onclick=e=>{if(e.target.closest('[data-close]'))return closeSheet();const b=e.target.closest('[data-plan]');if(!b)return;const id=b.dataset.plan;
+  S.plan=S.plan.includes(id)?S.plan.filter(i=>i!==id):S.plan.concat(id);save();drawPlan();pDetail(id)};
+
+/* ---------- hidden skills ---------- */
+chips($('#scat'),HCATS.map(c=>[c,c,HS.filter(s=>s.cat===c).length,HCOL[c]]),'scat',drawS);
+$('#sq').oninput=e=>{S.sq=e.target.value.trim().toLowerCase();drawS()};
+$('#sreveal').onclick=()=>{S.reveal=!S.reveal;save();drawS();drawP();sDetail(S.ssel);pDetail(S.psel)};
+const sSecret=s=>s.secret&&!S.reveal;
+const fmtTh=n=>n>=10000?(n/1000)+'k':n.toLocaleString('en');
+function sItem(s){const sec=sSecret(s);return `<button class="item${sec?' secret':''}" data-id="${s.id}" style="--rc:${HCOL[s.cat]}" aria-current="${S.ssel===s.id}">${sGlyph(s,sec)}<span class="t"><b>${sec?'Secret skill':esc(s.name)}</b><span class="sub">${esc(s.cond)}</span><span class="tags">${pips(s.th.length,0,HCOL[s.cat])}<span>${s.th.length===1?'1 level':'5 levels'} · from ${fmtTh(s.th[0])}</span></span></span></button>`}
+function drawS(){const q=S.sq;$('#sreveal').setAttribute('aria-pressed',S.reveal);$('#sreveal').textContent=S.reveal?'Hide secret names':'Show secret names';
+  const L=HS.filter(s=>(!S.scat||s.cat===S.scat)&&(!q||(s.cond+' '+(sSecret(s)?'':s.name+' '+s.lv.join(' '))).toLowerCase().includes(q)));
+  $('#scount').textContent=`${L.length} of ${HS.length}`;let h='';
+  for(const c of HCATS){const g=L.filter(s=>s.cat===c);if(g.length)h+=`<div class="grp"><h3 style="color:${HCOL[c]}">${c}</h3><span>${g.length}</span></div><div class="grid">${g.map(sItem).join('')}</div>`}
+  $('#slist').innerHTML=h||'<div class="empty">No skill matches. Try another word, such as night, poison or slime.</div>'}
+$('#slist').onclick=e=>{const b=e.target.closest('.item');if(b)selS(b.dataset.id,true)};
+function selS(id,open){S.ssel=id;document.querySelectorAll('#slist .item').forEach(x=>x.setAttribute('aria-current',x.dataset.id===id));sDetail(id);if(open)openSheet('#sdet')}
+function sDetail(id){const s=HSI[id],sec=sSecret(s),col=HCOL[s.cat];const sh=(HBY[s.ctr]||[]).filter(i=>i!==id);
+  const u=(s.cond.match(/\(([^)]+)\)$/)||[])[1]||'',unit=/^seconds/.test(u)?'s':/^steps/.test(u)?'steps':'';
+  const rows=s.th.map((t,i)=>`<tr class="${i===s.th.length-1?'top':''}"><td>Lv ${i+1}${i===s.th.length-1?' ★':''}</td><td class="n">${t.toLocaleString('en')}${unit?' '+unit:''}</td><td class="w">${esc(s.lv[i])}</td></tr>`).join('');
+  $('#sdet').innerHTML=`<div class="dhead" style="--rc2:#fff">${sGlyph(s,sec)}<div><h2>${sec?'Secret skill':esc(s.name)}</h2><small>${s.cat}${s.secret?' · Secret':''} · ${s.th.length===1?'single level':'5 levels'}</small></div><button class="close" data-close aria-label="Close">✕</button></div>
+  <div class="dbody" style="--rc:${col}">
+   <p class="how" style="background:color-mix(in srgb,${col} 8%,#fff);border-color:color-mix(in srgb,${col} 30%,#fff)"><b style="color:${col}">How to learn it</b>${esc(s.cond)}</p>
+   ${sec?`<p class="note">In the game this skill shows as ??? until you make progress. Use Show secret names to see it here.</p>`:''}
+   <div class="sec">Level thresholds</div>
+   <div class="tbl"><table><tr><th>Level</th><th>Reach</th><th>Total effect</th></tr>${rows}</table></div>
+   <p class="note">Counts are totals across your save. Effects at each level replace the one before.</p>
+   ${sh.length?`<div class="sec">Shares progress with</div><p class="note" style="margin-top:0">The same action also trains these skills:</p><div class="shares">${sh.map(i=>`<button data-go="${i}">${sSecret(HSI[i])?'Secret skill':esc(HSI[i].name)}</button>`).join('')}</div>`:''}
+  </div>`}
+$('#sdet').onclick=e=>{if(e.target.closest('[data-close]'))return closeSheet();const g=e.target.closest('[data-go]');if(g){S.scat=null;S.sq='';$('#sq').value='';chips($('#scat'),HCATS.map(c=>[c,c,HS.filter(s=>s.cat===c).length,HCOL[c]]),'scat',drawS);drawS();selS(g.dataset.go,false);const el=document.querySelector(`#slist .item[data-id="${g.dataset.go}"]`);if(el&&!mobile())el.scrollIntoView({block:'nearest'})}};
+
+/* sheet (phones) */
+let sheet=null,lastF=null;
+function openSheet(sel){if(!mobile())return;lastF=document.activeElement;sheet=$(sel);sheet.classList.add('open');$('#scrim').classList.add('on');const c=sheet.querySelector('[data-close]');if(c)c.focus()}
+function closeSheet(){if(!sheet)return;sheet.classList.remove('open');$('#scrim').classList.remove('on');sheet=null;if(lastF&&lastF.focus)lastF.focus()}
+$('#scrim').onclick=closeSheet;document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet()});
+
+/* ---------- growth ---------- */
+(function(){const W=460,H=250,l=46,r=18,t=16,b=34,x=L=>l+(L-1)*(W-l-r)/4,y=v=>t+(2.1-v)*(H-t-b)/1.5;
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Across levels 1 to 5, active power rises from 1.00 to 2.00, passive effect from 1.00 to 1.85, and cooldown falls from 1.00 to 0.80">`;
+  for(const v of [.6,1,1.4,1.8]){s+=`<line x1="${l}" x2="${W-r}" y1="${y(v)}" y2="${y(v)}" stroke="#dde2f2"/><text x="${l-8}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="#8389ab">×${v.toFixed(1)}</text>`}
+  for(let L=1;L<=5;L++)s+=`<text x="${x(L)}" y="${H-10}" text-anchor="middle" font-size="11" fill="${L===5?'#2c43a8':'#8389ab'}">${L===5?'Lv5 ★':'Lv'+L}</text>`;
+  const line=(f,c,dy)=>{let d='';for(let L=1;L<=5;L++)d+=(L>1?'L':'M')+x(L)+' '+y(f(L));let pts='';for(let L=1;L<=5;L++)pts+=`<circle cx="${x(L)}" cy="${y(f(L))}" r="${L===5?5:3.2}" fill="${c}" stroke="#fff" stroke-width="1.5"/>`;
+    return `<path d="${d}" fill="none" stroke="${c}" stroke-width="2.5" stroke-linejoin="round"/>${pts}<text x="${x(5)-10}" y="${y(f(5))+dy}" text-anchor="end" font-size="12" fill="${c}">×${f(5).toFixed(2)}</text>`};
+  s+=line(cdM,'#c47d00',18)+line(pasM,'#d1359f',18)+line(actM,'#2c43a8',-10)+'</svg>';$('#curve').innerHTML=s;
+  let tr='<tr><th>Level</th><th>Points</th><th>With Skill Evolution</th><th>Total</th></tr>',tot=0;for(let L=1;L<5;L++){tot+=need(L);tr+=`<tr class="${L===4?'top':''}"><td>${L} → ${L+1}${L===4?' ★':''}</td><td class="n">${need(L)}</td><td class="n">${need(L)/2}</td><td class="n">${tot}</td></tr>`}$('#xpT').innerHTML=tr;
+  const caps=[['Evasion','35%'],['Magic resistance','75%'],['Poison and chill resistance','80%'],['Shrug off poison or chill','50%'],['Damage cut from huge blows','50%'],['Blocked hit reduction','50%'],['Damage cut when below 30% HP','40%'],['Mana refunded by powers','40%'],['Shop cashback','30%'],['Ward against one enemy type','40%'],['Category recharge bonus','40%']];
+  $('#capT').innerHTML='<tr><th>Bonus</th><th>Capped at</th></tr>'+caps.map(([a,b])=>`<tr><td>${a}</td><td class="n">${b}</td></tr>`).join('')})();
+
+/* ---------- planner ---------- */
+$('#rarCost').innerHTML=PRAR.map((r,i)=>`<div class="rc" style="--rc:${RC[i]}"><b>${r}</b><div>${COST[i]} soul pt${i?'s':''}</div><div>${PW.filter(p=>p.rar===i&&!p.hidden).length} powers</div></div>`).join('');
+function drawPlan(){const sp=S.plan.reduce((a,i)=>a+COST[PWI[i].rar],0);
+  $('#spT').textContent=`${sp} of 7 spent · ${S.plan.length} of 3 gifts`;$('#spM').innerHTML=Array.from({length:7},(_,i)=>`<i class="${i<sp?'on':''}"></i>`).join('');
+  $('#slots').innerHTML=[0,1,2].map(i=>{const id=S.plan[i];if(!id)return`<div class="slot e">Gift ${i+1} · empty</div>`;const p=PWI[id];
+    return`<div class="slot on" style="--rc:${RC[p.rar]}">${pGlyph(p)}<button class="t" data-open="${id}"><b>${esc(p.name)}</b><small>${PRAR[p.rar]} · ${COST[p.rar]} SP → ${esc(p.evo)}</small></button><button class="rm" data-rm="${id}" aria-label="Remove ${esc(p.name)}">✕</button></div>`}).join('');
+  const leg=S.plan.filter(i=>PWI[i].rar>=3).length;
+  $('#rules').innerHTML=[[sp<=7,`${7-sp} soul point${7-sp===1?'':'s'} left`],[leg<=1,leg?'1 Legendary or Divine gift':'No Legendary or Divine yet'],[sp===7,sp===7?"Fate's Gacha unlocked":"Spend all 7 to unlock Fate's Gacha"]].map(([ok,t])=>`<span class="rule ${ok?'ok':'bad'}">${t}</span>`).join('')}
+$('#slots').onclick=e=>{const r=e.target.closest('[data-rm]'),o=e.target.closest('[data-open]');if(r){S.plan=S.plan.filter(i=>i!==r.dataset.rm);save();drawPlan();pDetail(S.psel)}else if(o){location.hash='powers';S.pcat=null;S.prar=null;S.ptype=null;S.pq='';$('#pq').value='';drawP();setTimeout(()=>{selP(o.dataset.open,true);const el=document.querySelector(`#plist .item[data-id="${o.dataset.open}"]`);if(el)el.scrollIntoView({block:'center'})},30)}};
+$('#clr').onclick=()=>{S.plan=[];save();drawPlan();pDetail(S.psel)};
+$('#rnd').onclick=()=>{const pool=PW.filter(p=>!p.hidden);for(let t=0;t<500;t++){const a=[];const sh=pool.slice().sort(()=>Math.random()-.5);for(const p of sh){if(a.length>=3)break;const sp=a.reduce((s,q)=>s+COST[q.rar],0);if(sp+COST[p.rar]>7)continue;if(p.rar>=3&&a.some(q=>q.rar>=3))continue;a.push(p)}
+  if(a.length===3&&a.reduce((s,q)=>s+COST[q.rar],0)===7){S.plan=a.map(p=>p.id);break}}save();drawPlan();pDetail(S.psel)};
+drawPlan();
+
+/* ---------- classes ---------- */
+const CLS=[{n:'Warden',b:'Oathbound blade of Eldoria. Hardy, and hits hard up close.',s:{HP:120,MP:40,ATK:9,DEF:4,MAG:3,SPD:62},crit:'5%',k:'Whirlwind'},{n:'Ranger',b:'Tracker of the borderwoods. Fast, precise, deadly at range.',s:{HP:96,MP:45,ATK:8,DEF:2,MAG:4,SPD:68},crit:'12%',k:'Lunar Arrow'},{n:'Arcanist',b:'Scholar of the eclipse. Fragile, but commands fire and frost.',s:{HP:84,MP:80,ATK:6,DEF:2,MAG:10,SPD:62},crit:'6%',k:'Ember Bolt'}];
+const MAX={HP:120,MP:80,ATK:10,DEF:5,MAG:10,SPD:70};
+$('#cls').innerHTML=CLS.map(c=>`<div class="cls"><header><h3>${c.n}</h3><small>Starts with ${c.k} · ${c.crit} crit</small></header><div class="b"><p>${c.b}</p><div class="bars">${Object.entries(c.s).map(([k,v])=>`<div class="bar"><span style="background:none;height:auto;color:var(--mute)">${k}</span><span><i style="width:${Math.round(v/MAX[k]*100)}%"></i></span><em>${v}</em></div>`).join('')}</div></div></div>`).join('');
+const SK=[['Ember Bolt','Fire Art',8,.55,'Hurl a bolt of eclipse-fire at the nearest foe. Rank 2+ sets enemies alight.'],['Lunar Arrow','Moon Art',5,1,'A piercing arrow of moonlight that passes through several enemies and ignores half their armour.'],['Whirlwind','Blade Art',14,4,'Spin your weapon twice, striking everything around you.'],['Frost Nova','Frost Art',18,8,'Burst of frost that freezes nearby enemies in place. Frozen guardians drop their shields.']];
+$('#skT').innerHTML='<tr><th>Skill</th><th>MP</th><th>Cooldown</th></tr>'+SK.map(s=>`<tr><td class="w"><b>${s[0]}</b> <span style="color:var(--mute);font-size:12px">${s[1]}</span><br><span style="color:var(--ink2);font-size:13px">${s[4]}</span></td><td class="n">${s[2]}</td><td class="n">${s[3]}s</td></tr>`).join('');
+(function(){const T=[['ember','Ember Bolt','EB',0,0,3,1],['arrow','Lunar Arrow','LA',1,0,3,1],['whirl','Whirlwind','WW',2,0,3,1],['nova','Frost Nova','FN',0,1,3,1,'ember'],['prec','Precision','Pr',1,1,5,0,'arrow','+3% crit'],['vit','Vitality','Vi',2,1,5,0,'whirl','+15 HP'],['flow','Arcane Flow','AF',0,2,3,0,'nova','+12 MP'],['focus','Eclipse Focus','EF',1,2,3,0,'prec','+10% skills'],['iron','Iron Skin','IS',2,2,3,0,'vit','+3 DEF']];
+  const pos=n=>[n[3]*33.3+16.7,n[4]*33.3+16.7],by=Object.fromEntries(T.map(n=>[n[0],n]));let s='<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">';
+  for(const n of T)if(n[7]){const a=pos(n),b=pos(by[n[7]]);s+=`<line x1="${b[0]}" y1="${b[1]}" x2="${a[0]}" y2="${a[1]}" stroke="#2c43a8" stroke-width="2" vector-effect="non-scaling-stroke"/>`}s+='</svg>';
+  s+=T.map(n=>{const[x,y]=pos(n);return`<div class="tn${n[6]?' sk':''}" style="left:${x}%;top:${y}%"><span><em>${n[2]}</em></span><b>${n[1]}</b><small>${n[8]?n[8]+' / rank':'Skill'} · max ${n[5]}</small></div>`}).join('');$('#tree').innerHTML=s})();
+
+/* ---------- routing ---------- */
+function route(){const v=VIEWS.some(([k])=>k===location.hash.slice(1))?location.hash.slice(1):'powers';closeSheet();
+  VIEWS.forEach(([k])=>{$('#v-'+k).hidden=k!==v});document.querySelectorAll('#tabs a').forEach(a=>{if(a.getAttribute('href')==='#'+v)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')})}
+addEventListener('hashchange',()=>{route();scrollTo(0,0)});
+route();drawP();drawS();pDetail(S.psel);sDetail(S.ssel);
+</script>
+</body>
+</html>
